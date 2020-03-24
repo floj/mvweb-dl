@@ -1,0 +1,35 @@
+---
+- name: Sendung mit der Maus
+  download_to: "./data/maus"
+  history_file: "./data/_hist/maus.json"
+  query:
+    channel: ARD
+    topic: Sendung mit der Maus
+    max_results: 10
+  skip_if:
+  - condition: title_contains
+    value: Hörfassung
+  - condition: title_contains
+    value: Gebärdensprache
+  - condition: shorter_then
+    value: 20m
+- name: heute show
+  download_to: "./data/heute-show"
+  history_file: "./data/_hist/heute-show.json"
+  query:
+    channel: zdf
+    topic: heute-show
+    max_results: 10
+  skip_if:
+  - condition: shorter_then
+    value: 20m
+- name: Die Anstalt
+  download_to: "./data/anstalt"
+  history_file: "./data/_hist/anstalt.json"
+  query:
+    channel: zdf
+    topic: Die Anstalt
+    max_results: 10
+  skip_if:
+  - condition: shorter_then
+    value: 30m
