@@ -18,7 +18,8 @@ import (
 
 func main() {
 	confFile := flag.String("config", "", "Config file to use")
-	dryRun := flag.Bool("dry", false, "Don't actually  download")
+	skipDownload := flag.Bool("no-download", false, "Skip download, but add to history file")
+	dryRun := flag.Bool("dry", false, "Don't download or add to history")
 
 	flag.Parse()
 	if *confFile == "" {
@@ -40,26 +41,26 @@ func main() {
 		}
 
 		log.Printf("  results: %+v", resp.Result.QueryInfo)
-		err = processResults(c, resp.Result.Results, *dryRun)
+		err = processResults(c, resp.Result.Results, *skipDownload, *dryRun)
 		if err != nil {
 			log.Printf("Could not process results: %v", err)
 			continue
 		}
 	}
 }
-func processResults(c conf.Config, results []mvweb.Result, dryRun bool) error {
+func processResults(c conf.Config, results []mvweb.Result, skipDownload, dryRun bool) error {
 	hist, err := c.History()
 	if err != nil {
 		return err
 	}
 	defer hist.Close()
 	for _, r := range results {
-		processResult(c, r, hist, dryRun)
+		processResult(c, r, hist, skipDownload, dryRun)
 	}
 	return nil
 }
 
-func processResult(c conf.Config, r mvweb.Result, hist history.History, dryRun bool) {
+func processResult(c conf.Config, r mvweb.Result, hist history.History, skipDownload, dryRun bool) {
 	log.Printf("  checking '%s' (ID: %s)", r.Title, r.ID)
 	if match, filter := c.Matches(r); !match {
 		log.Printf("    skipping - %s", filter)
@@ -73,12 +74,19 @@ func processResult(c conf.Config, r mvweb.Result, hist history.History, dryRun b
 
 	filename := filepath.Join(c.DownloadDir, r.Filename())
 	if existsFile(filename) {
+		hist.Add(r.ID, r.Title)
 		log.Printf("    skipping - file already exists")
 		return
 	}
 	log.Printf("    downloading to '%s'", filename)
 	if dryRun {
-		log.Println("    DRY RUN - skipping download")
+		log.Println("    DRY RUN - skipping history and download")
+		return
+	}
+
+	if skipDownload {
+		hist.Add(r.ID, r.Title)
+		log.Println("    SKIP DOWNLOAD - adding to history but skipping download")
 		return
 	}
 
@@ -87,9 +95,9 @@ func processResult(c conf.Config, r mvweb.Result, hist history.History, dryRun b
 		log.Printf("ERROR download failes %v", err)
 		return
 	}
+	log.Printf("    finished after %s, %s", duration, formatBytes(bytes))
 	hist.Add(r.ID, r.Title)
 
-	log.Printf("    finished after %s, %s", duration, formatBytes(bytes))
 }
 
 func formatBytes(b int64) string {

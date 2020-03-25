@@ -52,8 +52,8 @@ func (f *Skipper) Skip(r mvweb.Result) bool {
 	switch f.Condition {
 	case "title_contains":
 		return strings.Contains(r.Title, f.Value)
-	case "shorter_then":
-		midDuration, err := time.ParseDuration(f.Value)
+	case "shorter_than":
+		minDuration, err := time.ParseDuration(f.Value)
 		if err != nil {
 			panic(fmt.Errorf("Could not parse duration %s: %w", f.Value, err))
 		}
@@ -61,7 +61,17 @@ func (f *Skipper) Skip(r mvweb.Result) bool {
 		if err != nil {
 			panic(fmt.Errorf("Could not parse duration %d: %w", r.Duration, err))
 		}
-		return actDuration < midDuration
+		return actDuration < minDuration
+	case "longer_than":
+		maxDuration, err := time.ParseDuration(f.Value)
+		if err != nil {
+			panic(fmt.Errorf("Could not parse duration %s: %w", f.Value, err))
+		}
+		actDuration, err := time.ParseDuration(fmt.Sprintf("%ds", r.Duration))
+		if err != nil {
+			panic(fmt.Errorf("Could not parse duration %d: %w", r.Duration, err))
+		}
+		return actDuration > maxDuration
 	default:
 		panic(fmt.Errorf("Unknown filter type: %s", f.Condition))
 	}
