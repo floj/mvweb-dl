@@ -86,18 +86,26 @@ func (c *Config) ToMvwebRequest() mvweb.Request {
 }
 
 func Load(path string) ([]Config, error) {
-	var c []Config
+	var conf []Config
 	f, err := os.Open(path)
 	if err != nil {
-		return c, err
+		return conf, err
 	}
 	defer f.Close()
 	dec, err := decoderFor(path, f)
 	if err != nil {
-		return c, err
+		return conf, err
 	}
-	err = dec.Decode(&c)
-	return c, err
+	err = dec.Decode(&conf)
+	if err != nil {
+		return conf, err
+	}
+	for _, c := range conf {
+		if c.Query.MaxResults == 0 {
+			c.Query.MaxResults = 100
+		}
+	}
+	return conf, nil
 }
 
 type confDecoder interface {
