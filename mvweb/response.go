@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cheggaaa/pb/v3"
 	"github.com/mattn/go-isatty"
-	"github.com/schollz/progressbar/v2"
 )
 
 type QueryInfo struct {
@@ -82,17 +82,17 @@ func (r *Result) download(url, path string) (int64, error) {
 	if err != nil {
 		return -1, err
 	}
+	defer f.Close()
 
-	bar := progressbar.NewOptions(
-		int(resp.ContentLength),
-		progressbar.OptionSetBytes(int(resp.ContentLength)),
-	)
 	var out io.Writer = f
-	if isatty.IsTerminal(os.Stdout.Fd()) {
-		out = io.MultiWriter(f, bar)
+	var in io.Reader = resp.Body
+	if isatty.IsTerminal(os.Stderr.Fd()) {
+		bar := pb.New64(resp.ContentLength)
+		bar.SetRefreshRate(time.Second)
+		in = bar.NewProxyReader(resp.Body)
+		bar.Start()
+		defer bar.Finish()
 	}
-
-	n, err := io.Copy(out, resp.Body)
-	f.Close()
+	n, err := io.Copy(out, in)
 	return n, err
 }
