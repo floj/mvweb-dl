@@ -42,7 +42,7 @@ type Response struct {
 
 func (r *Result) DownloadTo(path string) (int64, time.Duration, error) {
 	start := time.Now()
-	n, err := r.download(r.UrlVideoHD, path)
+	n, err := r.download(r.url(), path)
 	end := time.Now()
 	return n, end.Sub(start), err
 }
