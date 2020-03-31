@@ -1,6 +1,7 @@
 package mvweb
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -77,6 +78,9 @@ func (r *Result) download(url, path string) (int64, error) {
 		return -1, err
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return -1, fmt.Errorf("Server returned %d (%s)", resp.StatusCode, resp.Status)
+	}
 
 	f, err := os.Create(path)
 	if err != nil {
