@@ -92,7 +92,7 @@ func processResult(c conf.Config, r mvweb.Result, hist history.History, skipDown
 
 	bytes, duration, err := r.DownloadTo(filename)
 	if err != nil {
-		log.Printf("ERROR download failes %v", err)
+		log.Printf("ERROR download failed %v", err)
 		return
 	}
 	log.Printf("    finished after %s, %s", duration, formatBytes(bytes))
