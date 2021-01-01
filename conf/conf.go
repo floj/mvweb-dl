@@ -128,7 +128,7 @@ func decoderFor(path string, r io.Reader) (confDecoder, error) {
 	case ".json":
 		return json.NewDecoder(r), nil
 	case ".yml":
-		return yaml.NewDecoder(r), nil
+		fallthrough
 	case ".yaml":
 		return yaml.NewDecoder(r), nil
 	}
