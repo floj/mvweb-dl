@@ -78,6 +78,11 @@ func (r *Result) download(url, path string) (int64, error) {
 		return -1, err
 	}
 	defer resp.Body.Close()
+	ct := resp.Header.Get("content-type")
+	if strings.HasPrefix(ct, "text/") {
+		return -1, fmt.Errorf("Found content type %s", ct)
+	}
+
 	if resp.StatusCode != http.StatusOK {
 		return -1, fmt.Errorf("Server returned %d (%s)", resp.StatusCode, resp.Status)
 	}
