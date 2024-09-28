@@ -15,7 +15,7 @@ import (
 )
 
 type QueryInfo struct {
-	FilmlisteTimestamp string `json:"filmlisteTimestamp"`
+	FilmlisteTimestamp uint   `json:"filmlisteTimestamp"`
 	ResultCount        uint   `json:"resultCount"`
 	SearchEngineTime   string `json:"searchEngineTime"`
 	TotalResults       uint   `json:"totalResults"`
@@ -43,6 +43,7 @@ type Response struct {
 
 func (r *Result) DownloadTo(path string) (int64, time.Duration, error) {
 	start := time.Now()
+	os.MkdirAll(filepath.Dir(path), 0755)
 	n, err := r.download(r.url(), path)
 	end := time.Now()
 	return n, end.Sub(start), err
